@@ -5,33 +5,54 @@
 
 [![CRAN
 Version](https://www.r-pkg.org/badges/version/tidylog)](https://CRAN.R-project.org/package=tidylog)
+[![Downloads](http://cranlogs.r-pkg.org/badges/tidylog)](https://CRAN.R-project.org/package=tidylog)
 [![Build
 Status](https://travis-ci.org/elbersb/tidylog.svg?branch=master)](https://travis-ci.org/elbersb/tidylog)
 [![Coverage
 status](https://codecov.io/gh/elbersb/tidylog/branch/master/graph/badge.svg)](https://codecov.io/github/elbersb/tidylog?branch=master)
 
-The goal of tidylog is to provide feedback about basic dplyr operations.
-It provides simple wrapper functions for the most common functions, such
-as `filter`, `mutate`, `select`, `full_join`, and `group_by`.
+The goal of tidylog is to provide feedback about dplyr and tidyr
+operations. It provides simple wrapper functions for the most common
+functions, such as `filter`, `mutate`, `select`, `full_join`, and
+`group_by`.
 
 ## Example
 
-Load `tidylog` after `dplyr`:
+Load `tidylog` after `dplyr` and/or `tidyr`:
 
 ``` r
 library("dplyr")
+library("tidyr")
 library("tidylog", warn.conflicts = FALSE)
 ```
 
-Tidylog will give you feedback, for instance when filtering a data
-frame:
+Tidylog will give you feedback, for instance when filtering a data frame
+or adding a new variable:
 
 ``` r
 filtered <- filter(mtcars, cyl == 4)
-#> filter: removed 21 out of 32 rows (66%)
+#> filter: removed 21 rows (66%), 11 rows remaining
+mutated <- mutate(mtcars, new_var = wt ** 2)
+#> mutate: new variable 'new_var' with 29 unique values and 0% NA
 ```
 
-This can be especially helpful in longer pipes:
+Tidylog reports detailed information for joins:
+
+``` r
+joined <- left_join(nycflights13::flights, nycflights13::weather,
+    by = c("year", "month", "day", "origin", "hour", "time_hour"))
+#> left_join: added 9 columns (temp, dewp, humid, wind_dir, wind_speed, …)
+#>            > rows only in x     1,556
+#>            > rows only in y  (  6,737)
+#>            > matched rows     335,220
+#>            >                 =========
+#>            > rows total       336,776
+```
+
+In this case, we see that 1,556 rows from the `flights` dataset do not
+have weather information.
+
+Tidylog can be especially helpful in longer pipes:
 
 ``` r
 summary <- mtcars %>%
@@ -42,7 +63,7 @@ summary <- mtcars %>%
     tally() %>%
     filter(n >= 1)
 #> select: dropped 7 variables (disp, drat, wt, qsec, vs, …)
-#> filter: removed 6 out of 32 rows (19%)
+#> filter: removed 6 rows (19%), 26 rows remaining
 #> mutate: new variable 'mpg_round' with 15 unique values and 0% NA
 #> group_by: 3 grouping variables (cyl, mpg_round, am)
 #> tally: now 20 rows and 4 columns, 2 group variables remaining (cyl, mpg_round)
@@ -54,32 +75,47 @@ no effect.
 
 ## Installation
 
+Download from CRAN:
+
+``` r
+install.packages("tidylog")
+```
+
+Or install the development version:
+
 ``` r
 devtools::install_github("elbersb/tidylog")
 ```
 
 ## More examples
 
-### filter, distinct
+### filter, distinct, drop\_na
 
 ``` r
 a <- filter(mtcars, mpg > 20)
-#> filter: removed 18 out of 32 rows (56%)
+#> filter: removed 18 rows (56%), 14 rows remaining
 b <- filter(mtcars, mpg > 100)
 #> filter: removed all rows (100%)
 c <- filter(mtcars, mpg > 0)
 #> filter: no rows removed
 d <- filter_at(mtcars, vars(starts_with("d")), any_vars((. %% 2) == 0))
-#> filter_at: removed 19 out of 32 rows (59%)
+#> filter_at: removed 19 rows (59%), 13 rows remaining
 e <- distinct(mtcars)
 #> distinct: no rows removed
 f <- distinct_at(mtcars, vars(vs:carb))
-#> distinct_at: removed 18 out of 32 rows (56%)
+#> distinct_at: removed 18 rows (56%), 14 rows remaining
 g <- top_n(mtcars, 2, am)
-#> top_n: removed 19 out of 32 rows (59%)
+#> top_n: removed 19 rows (59%), 13 rows remaining
+
+h <- drop_na(airquality)
+#> drop_na: removed 42 rows (27%), 111 rows remaining
+i <- drop_na(airquality, Ozone)
+#> drop_na: removed 37 rows (24%), 116 rows remaining
+k <- drop_na(airquality, Wind, Temp, Month, Day)
+#> drop_na: no rows removed
 ```
 
-### mutate, transmute
+### mutate, transmute, replace\_na, fill
 
 ``` r
 a <- mutate(mtcars, new_var = 1)
@@ -90,7 +126,7 @@ c <- mutate(mtcars, new_var = NA)
 #> mutate: new variable 'new_var' with one unique value and 100% NA
 d <- mutate_at(mtcars, vars(mpg, gear, drat), round)
 #> mutate_at: changed 28 values (88%) of 'mpg' (0 new NA)
-#> mutate_at: changed 31 values (97%) of 'drat' (0 new NA)
+#>            changed 31 values (97%) of 'drat' (0 new NA)
 e <- mutate(mtcars, am_factor = as.factor(am))
 #> mutate: new variable 'am_factor' with 2 unique values and 0% NA
 f <- mutate(mtcars, am = as.factor(am))
@@ -102,10 +138,66 @@ h <- mutate(mtcars, am = recode(am, `0` = "zero", `1` = NA_character_))
 
 i <- transmute(mtcars, mpg = mpg * 2, gear = gear + 1, new_var = vs + am)
 #> transmute: dropped 9 variables (cyl, disp, hp, drat, wt, …)
-#> transmute: changed 32 values (100%) of 'mpg' (0 new NA)
-#> transmute: changed 32 values (100%) of 'gear' (0 new NA)
-#> transmute: new variable 'new_var' with 3 unique values and 0% NA
+#>            changed 32 values (100%) of 'mpg' (0 new NA)
+#>            changed 32 values (100%) of 'gear' (0 new NA)
+#>            new variable 'new_var' with 3 unique values and 0% NA
+
+j <- replace_na(airquality, list(Solar.R = 1))
+#> replace_na: converted 'Solar.R' from integer to double (7 fewer NA)
+k <- fill(airquality, Ozone)
+#> fill: changed 37 values (24%) of 'Ozone' (37 fewer NA)
 ```
+
+### joins
+
+For joins, tidylog provides more detailed information. For any join,
+tidylog will show the number of rows that are only present in x (the
+first dataframe), only present in y (the second dataframe), and rows
+that have been matched. Numbers in parantheses indicate that these rows
+are not included in the result. Tidylog will also indicate whether any
+rows were duplicated (which is often unintentional):
+
+``` r
+x <- tibble(a = 1:2)
+y <- tibble(a = c(1, 1, 2), b = 1:3) # 1 is duplicated
+j <- left_join(x, y, by = "a")
+#> left_join: added one column (b)
+#>            > rows only in x   0
+#>            > rows only in y  (0)
+#>            > matched rows     3    (includes duplicates)
+#>            >                 ===
+#>            > rows total       3
+```
+
+More examples:
+
+``` r
+a <- left_join(band_members, band_instruments, by = "name")
+#> left_join: added one column (plays)
+#>            > rows only in x   1
+#>            > rows only in y  (1)
+#>            > matched rows     2
+#>            >                 ===
+#>            > rows total       3
+b <- full_join(band_members, band_instruments, by = "name")
+#> full_join: added one column (plays)
+#>            > rows only in x   1
+#>            > rows only in y   1
+#>            > matched rows     2
+#>            >                 ===
+#>            > rows total       4
+c <- anti_join(band_members, band_instruments, by = "name")
+#> anti_join: added no columns
+#>            > rows only in x   1
+#>            > rows only in y  (1)
+#>            > matched rows    (2)
+#>            >                 ===
+#>            > rows total       1
+```
+
+Because tidylog needs to perform two additional joins behind the scenes
+to report this information, the overhead will be larger than for the
+other tidylog functions (especially with large datasets).
 
 ### select
 
@@ -116,17 +208,6 @@ b <- select(mtcars, matches("a"))
 #> select: dropped 7 variables (mpg, cyl, disp, hp, wt, …)
 c <- select_if(mtcars, is.character)
 #> select_if: dropped all variables
-```
-
-### joins
-
-``` r
-a <- left_join(band_members, band_instruments, by = "name")
-#> left_join: added 0 rows and added one column (plays)
-b <- full_join(band_members, band_instruments, by = "name")
-#> full_join: added one row and added one column (plays)
-c <- anti_join(band_members, band_instruments, by = "name")
-#> anti_join: removed 2 rows and added no new columns
 ```
 
 ### summarize
@@ -161,10 +242,24 @@ d <- mtcars %>% add_count(gear, carb, name = "count")
 #> add_count: new variable 'count' with 5 unique values and 0% NA
 ```
 
+### gather, spread
+
+``` r
+long <- mtcars %>%
+    mutate(id = 1:n()) %>%
+    gather("col", "data", -id)
+#> mutate: new variable 'id' with 32 unique values and 0% NA
+#> gather: reorganized (mpg, cyl, disp, hp, drat, …) into (col, data) [was 32x12, now 352x3]
+wide <- long %>%
+    spread(col, data)
+#> spread: reorganized (col, data) into (am, carb, cyl, disp, drat, …) [was 352x3, now 32x12]
+```
+
 ## Turning logging off, registering additional loggers
 
 To turn off the output for just a particular function call, you can
-simply call the dplyr functions directly, e.g. `dplyr::filter`.
+simply call the dplyr and tidyr functions directly, e.g. `dplyr::filter`
+or `tidyr::drop_na`.
 
 To turn off the output more permanently, set the global option
 `tidylog.display` to an empty list:
@@ -175,7 +270,7 @@ a <- filter(mtcars, mpg > 20)
 
 options("tidylog.display" = NULL)    # turn on
 a <- filter(mtcars, mpg > 20)
-#> filter: removed 18 out of 32 rows (56%)
+#> filter: removed 18 rows (56%), 14 rows remaining
 ```
 
 This option can also be used to register additional loggers. The option
@@ -186,34 +281,34 @@ output, simply overwrite the option:
 
 ``` r
 library("crayon")  # for terminal colors
-crayon <- function(x) cat(red$bold(x), sep = "\n") 
+crayon <- function(x) cat(red$bold(x), sep = "\n")
 options("tidylog.display" = list(crayon))
 a <- filter(mtcars, mpg > 20)
-#> filter: removed 18 out of 32 rows (56%)
+#> filter: removed 18 rows (56%), 14 rows remaining
 ```
 
-To print the output both to the screen and to a file, you could
-use:
+To print the output both to the screen and to a file, you could use:
 
 ``` r
 log_to_file <- function(text) cat(text, file = "log.txt", sep = "\n", append = TRUE)
 options("tidylog.display" = list(message, log_to_file))
 a <- filter(mtcars, mpg > 20)
-#> filter: removed 18 out of 32 rows (56%)
+#> filter: removed 18 rows (56%), 14 rows remaining
 ```
 
 ## Namespace conflicts
 
-Tidylog redefines several of the functions exported by dplyr, so it
-should be loaded last, otherwise there will be no output. A more
+Tidylog redefines several of the functions exported by dplyr and tidyr,
+so it should be loaded last, otherwise there will be no output. A more
 explicit way to resolve namespace conflicts is to use the
 [conflicted](https://CRAN.R-project.org/package=conflicted) package:
 
 ``` r
-library(dplyr)
-library(tidylog)
-library(conflicted)
+library("dplyr")
+library("tidyr")
+library("tidylog")
+library("conflicted")
 for (f in getNamespaceExports("tidylog")) {
-    conflicted::conflict_prefer(f, 'tidylog', quiet = TRUE)
+    conflicted::conflict_prefer(f, "tidylog", quiet = TRUE)
 }
 ```

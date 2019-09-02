@@ -10,20 +10,24 @@
 \title{Wrapper around dplyr::inner_join and related functions
 that prints information about the operation}
 \usage{
-inner_join(x, ...)
+inner_join(x, y, by = NULL, ...)
 
-full_join(x, ...)
+full_join(x, y, by = NULL, ...)
 
-left_join(x, ...)
+left_join(x, y, by = NULL, ...)
 
-right_join(x, ...)
+right_join(x, y, by = NULL, ...)
 
-anti_join(x, ...)
+anti_join(x, y, by = NULL, ...)
 
-semi_join(x, ...)
+semi_join(x, y, by = NULL, ...)
 }
 \arguments{
 \item{x}{a tbl; see \link[dplyr:join]{inner_join}}
+
+\item{y}{a tbl; see \link[dplyr:join]{inner_join}}
+
+\item{by}{a vector; see \link[dplyr:join]{inner_join}}
 
 \item{...}{see \link[dplyr:join]{inner_join}}
 }
@@ -36,7 +40,10 @@ that prints information about the operation
 }
 \examples{
 left_join(dplyr::band_members, dplyr::band_instruments, by = "name")
-#> left_join: added 0 rows and added one column (plays)
-full_join(dplyr::band_members, dplyr::band_instruments, by = "name")
-#> full_join: added one row and added one column (plays)
+#> left_join: added one column (plays)
+#>            > rows only in x   1
+#>            > rows only in y  (1)
+#>            > matched rows     2
+#>            >                 ===
+#>            > rows total       3
 }

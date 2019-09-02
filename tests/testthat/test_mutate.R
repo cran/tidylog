@@ -38,6 +38,36 @@ test_that("mutate", {
     expect_message(f(), "from double to character.*0 new NA")
 })
 
+test_that("missings", {
+    # same type, increase missings
+    f <- function() tidylog::mutate(iris, Sepal.Length = ifelse(Sepal.Length > 5, NA, Sepal.Length))
+    expect_message(f(), "changed.*(118 new NA)")
+
+    # same type, reduce missings
+    iris2 <- dplyr::mutate(iris, Sepal.Length = ifelse(Sepal.Length > 5, NA, Sepal.Length))
+    f <- function() tidylog::mutate(iris2, Sepal.Length = 1)
+    expect_message(f(), "changed.*(118 fewer NA)")
+
+    # same type, same missings
+    f <- function() tidylog::mutate(iris, Sepal.Length = sample(Sepal.Length))
+    expect_message(f(), "changed.*(0 new NA)")
+
+    # double to integer, increase missings
+    f <- function() tidylog::mutate(iris,
+        Sepal.Length = as.integer(ifelse(Sepal.Length > 5, NA, Sepal.Length)))
+    expect_message(f(), "converted.*to integer.*(118 new NA)")
+
+    # double to integer, reduce missings
+    iris2 <- dplyr::mutate(iris, Sepal.Length = ifelse(Sepal.Length > 5, NA, Sepal.Length))
+    f <- function() tidylog::mutate(iris2, Sepal.Length = as.integer(1))
+    expect_message(f(), "converted.*to integer.*(118 fewer NA)")
+
+    # double to integer, same missings
+    f <- function() tidylog::mutate(iris,
+        Sepal.Length = as.integer(sample(Sepal.Length)))
+    expect_message(f(), "converted.*to integer.*(0 new NA)")
+})
+
 test_that("transmute", {
     expect_message({
         out <- tidylog::transmute(mtcars, test = TRUE)
@@ -142,4 +172,32 @@ test_that("transmute: argument order", {
     })
     expect_equal(all(out$test), TRUE)
     expect_equal(ncol(out), 1)
+})
+
+test_that("mutate/transmute: partial matching", {
+    f <- function() tidylog::mutate(mtcars, f = 1)
+    expect_message(f(), "new variable 'f'")
+    f <- function() tidylog::transmute(mtcars, fun = 1)
+    expect_message(f(), "new variable 'fun'")
+})
+
+test_that("tidyr::replace_na", {
+    df <- tibble(x = c(1, 2, NA), y = c("a", NA, "b"))
+
+    expect_message({
+        out <- tidylog::replace_na(df, list(x = 0, y = "unknown"))
+    })
+    # with vector
+    expect_silent(dplyr::mutate(df, x = replace_na(x, 0)))
+
+    expect_equal(tidyr::replace_na(df, list(x = 0, y = "unknown")), out)
+})
+
+test_that("tidyr::fill", {
+    df <- data.frame(Month = 1:12, Year = c(2000, rep(NA, 11)))
+    expect_message({
+        out <- tidylog::fill(df, Year)
+    })
+
+    expect_equal(tidyr::fill(df, Year), out)
 })

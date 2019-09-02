@@ -2,7 +2,7 @@ plural <- function(n_items, noun, mid = "") {
     if (n_items == 1) {
         paste0("one ", mid, noun)
     } else {
-        paste0(n_items, " ", mid, noun, "s")
+        paste0(formatC(n_items, big.mark = ","), " ", mid, noun, "s")
     }
 }
 
@@ -21,11 +21,12 @@ percent <- function(n, total) {
     }
 }
 
+#' @import clisymbols
 format_list <- function(items) {
     if (length(items) <= 5) {
         paste0(items, collapse = ", ")
     } else {
-        paste0(c(items[1:5], "\u2026"), collapse = ", ")
+        paste0(c(items[1:5], clisymbols::symbol$ellipsis), collapse = ", ")
     }
 }
 
