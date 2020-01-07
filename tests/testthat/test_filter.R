@@ -1,7 +1,7 @@
+context("test_filter")
 library("dplyr")
 library("tidyr")
 library("tidylog")
-context("test_filter")
 
 test_that("filter", {
     expect_message({
@@ -31,11 +31,39 @@ test_that("distinct", {
     expect_equal(out, dplyr::distinct(mtcars, mpg))
 })
 
-test_that("top_n", {
+test_that("top_n, top_frac", {
     expect_message({
         out <- tidylog::top_n(mtcars, 3, carb)
     })
     expect_equal(out, dplyr::top_n(mtcars, 3, carb))
+
+    expect_message({
+        out <- tidylog::top_frac(mtcars, .5, carb)
+    })
+    expect_equal(out, dplyr::top_frac(mtcars, .5, carb))
+})
+
+test_that("sample_n, sample_frac", {
+    expect_message({
+        set.seed(1)
+        out <- tidylog::sample_n(mtcars, 3)
+    })
+    set.seed(1)
+    expect_equal(out, dplyr::sample_n(mtcars, 3))
+
+    expect_message({
+        set.seed(1)
+        out <- tidylog::sample_frac(mtcars, .5)
+    })
+    set.seed(1)
+    expect_equal(out, dplyr::sample_frac(mtcars, .5))
+})
+
+test_that("slice", {
+    expect_message({
+        out <- tidylog::slice(mtcars, 5:n())
+    })
+    expect_equal(out, dplyr::slice(mtcars, 5:n()))
 })
 
 test_that("filter: scoped variants", {

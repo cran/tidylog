@@ -1,6 +1,6 @@
+context("test_summarize")
 library("dplyr")
 library("tidylog")
-context("test_summarize")
 
 test_that("summarize", {
     expect_message({
@@ -43,6 +43,15 @@ test_that("count", {
     })
     expect_equal(nrow(out), 11)
     expect_equal(ncol(out), 3)
+})
+
+test_that("uncount", {
+    expect_message({
+        df <- tibble(x = c("a", "b"), n = c(1, 2))
+        out <- uncount(df, n)
+    })
+    expect_equal(nrow(out), 3)
+    expect_equal(ncol(out), 1)
 })
 
 test_that("summarize: scoped variants", {

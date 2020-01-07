@@ -1,7 +1,6 @@
 #' Wrapper around dplyr::filter and related functions
 #' that prints information about the operation
 #'
-#'
 #' @param .data a tbl; see \link[dplyr]{filter}
 #' @param ... see \link[dplyr]{filter}
 #' @return see \link[dplyr]{filter}
@@ -67,10 +66,33 @@ top_n <- function(.data, ...) {
 
 #' @rdname filter
 #' @export
+top_frac <- function(.data, ...) {
+    log_filter(.data, .fun = dplyr::top_frac, .funname = "top_frac", ...)
+}
+
+#' @rdname filter
+#' @export
+sample_n <- function(.data, ...) {
+    log_filter(.data, .fun = dplyr::sample_n, .funname = "sample_n", ...)
+}
+
+#' @rdname filter
+#' @export
+sample_frac <- function(.data, ...) {
+    log_filter(.data, .fun = dplyr::sample_frac, .funname = "sample_frac", ...)
+}
+
+#' @rdname filter
+#' @export
+slice <- function(.data, ...) {
+    log_filter(.data, .fun = dplyr::slice, .funname = "slice", ...)
+}
+
+#' @rdname filter
+#' @export
 drop_na <- function(.data, ...) {
     log_filter(.data, .fun = tidyr::drop_na, .funname = "drop_na", ...)
 }
-
 
 log_filter <- function(.data, .fun, .funname, ...) {
     newdata <- .fun(.data, ...)

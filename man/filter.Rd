@@ -10,6 +10,10 @@
 \alias{distinct_if}
 \alias{distinct_at}
 \alias{top_n}
+\alias{top_frac}
+\alias{sample_n}
+\alias{sample_frac}
+\alias{slice}
 \alias{drop_na}
 \title{Wrapper around dplyr::filter and related functions
 that prints information about the operation}
@@ -31,6 +35,14 @@ distinct_if(.data, ...)
 distinct_at(.data, ...)
 
 top_n(.data, ...)
+
+top_frac(.data, ...)
+
+sample_n(.data, ...)
+
+sample_frac(.data, ...)
+
+slice(.data, ...)
 
 drop_na(.data, ...)
 }

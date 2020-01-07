@@ -106,13 +106,13 @@ f <- distinct_at(mtcars, vars(vs:carb))
 #> distinct_at: removed 18 rows (56%), 14 rows remaining
 g <- top_n(mtcars, 2, am)
 #> top_n: removed 19 rows (59%), 13 rows remaining
+i <- sample_frac(mtcars, 0.5)
+#> sample_frac: removed 16 rows (50%), 16 rows remaining
 
-h <- drop_na(airquality)
+j <- drop_na(airquality)
 #> drop_na: removed 42 rows (27%), 111 rows remaining
-i <- drop_na(airquality, Ozone)
+k <- drop_na(airquality, Ozone)
 #> drop_na: removed 37 rows (24%), 116 rows remaining
-k <- drop_na(airquality, Wind, Temp, Month, Day)
-#> drop_na: no rows removed
 ```
 
 ### mutate, transmute, replace\_na, fill
@@ -153,7 +153,7 @@ k <- fill(airquality, Ozone)
 For joins, tidylog provides more detailed information. For any join,
 tidylog will show the number of rows that are only present in x (the
 first dataframe), only present in y (the second dataframe), and rows
-that have been matched. Numbers in parantheses indicate that these rows
+that have been matched. Numbers in parentheses indicate that these rows
 are not included in the result. Tidylog will also indicate whether any
 rows were duplicated (which is often unintentional):
 
@@ -199,7 +199,7 @@ Because tidylog needs to perform two additional joins behind the scenes
 to report this information, the overhead will be larger than for the
 other tidylog functions (especially with large datasets).
 
-### select
+### select, rename
 
 ``` r
 a <- select(mtcars, mpg, wt)
@@ -208,6 +208,11 @@ b <- select(mtcars, matches("a"))
 #> select: dropped 7 variables (mpg, cyl, disp, hp, wt, …)
 c <- select_if(mtcars, is.character)
 #> select_if: dropped all variables
+
+d <- rename(mtcars, miles_per_gallon = mpg)
+#> rename: renamed one variable (miles_per_gallon)
+e <- rename_all(mtcars, toupper)
+#> rename_all: renamed 11 variables (MPG, CYL, DISP, HP, DRAT, …)
 ```
 
 ### summarize
@@ -221,7 +226,7 @@ a <- mtcars %>%
 
 b <- iris %>%
     group_by(Species) %>%
-    summarize_all(list(~min, ~max))
+    summarize_all(list(min, max))
 #> group_by: one grouping variable (Species)
 #> summarize_all: now 3 rows and 9 columns, ungrouped
 ```
@@ -242,18 +247,20 @@ d <- mtcars %>% add_count(gear, carb, name = "count")
 #> add_count: new variable 'count' with 5 unique values and 0% NA
 ```
 
-### gather, spread
+### pivot\_longer, pivot\_wider
 
 ``` r
-long <- mtcars %>%
+longer <- mtcars %>%
     mutate(id = 1:n()) %>%
-    gather("col", "data", -id)
+    pivot_longer(-id, names_to = "var", values_to = "value")
 #> mutate: new variable 'id' with 32 unique values and 0% NA
-#> gather: reorganized (mpg, cyl, disp, hp, drat, …) into (col, data) [was 32x12, now 352x3]
-wide <- long %>%
-    spread(col, data)
-#> spread: reorganized (col, data) into (am, carb, cyl, disp, drat, …) [was 352x3, now 32x12]
+#> pivot_longer: reorganized (mpg, cyl, disp, hp, drat, …) into (var, value) [was 32x12, now 352x3]
+wider <- longer %>%
+    pivot_wider(names_from = var, values_from = value)
+#> pivot_wider: reorganized (var, value) into (mpg, cyl, disp, hp, drat, …) [was 352x3, now 32x12]
 ```
+
+Tidylog also supports `gather` and `spread`.
 
 ## Turning logging off, registering additional loggers
 
