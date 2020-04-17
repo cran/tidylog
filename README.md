@@ -129,8 +129,8 @@ d <- mutate_at(mtcars, vars(mpg, gear, drat), round)
 #>            changed 31 values (97%) of 'drat' (0 new NA)
 e <- mutate(mtcars, am_factor = as.factor(am))
 #> mutate: new variable 'am_factor' with 2 unique values and 0% NA
-f <- mutate(mtcars, am = as.factor(am))
-#> mutate: converted 'am' from double to factor (0 new NA)
+f <- mutate(mtcars, am = as.ordered(am))
+#> mutate: converted 'am' from double to ordered factor (0 new NA)
 g <- mutate(mtcars, am = ifelse(am == 1, NA, am))
 #> mutate: changed 13 values (41%) of 'am' (13 new NA)
 h <- mutate(mtcars, am = recode(am, `0` = "zero", `1` = NA_character_))
@@ -204,14 +204,16 @@ other tidylog functions (especially with large datasets).
 ``` r
 a <- select(mtcars, mpg, wt)
 #> select: dropped 9 variables (cyl, disp, hp, drat, qsec, …)
-b <- select(mtcars, matches("a"))
-#> select: dropped 7 variables (mpg, cyl, disp, hp, wt, …)
-c <- select_if(mtcars, is.character)
+b <- select_if(mtcars, is.character)
 #> select_if: dropped all variables
+c <- select(mtcars, hp, everything())
+#> select: columns reordered (hp, mpg, cyl, disp, drat, …)
+d <- select(mtcars, a = wt, b = mpg)
+#> select: renamed 2 variables (a, b) and dropped 9 variables
 
-d <- rename(mtcars, miles_per_gallon = mpg)
+e <- rename(mtcars, miles_per_gallon = mpg)
 #> rename: renamed one variable (miles_per_gallon)
-e <- rename_all(mtcars, toupper)
+f <- rename_all(mtcars, toupper)
 #> rename_all: renamed 11 variables (MPG, CYL, DISP, HP, DRAT, …)
 ```
 

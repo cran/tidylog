@@ -1,3 +1,10 @@
+# 1.0.0.9000
+
+- autogenerate documentation
+- data argument now has same name as in tidyr/dplyr (#43)
+- fixes #42
+- fixes "ungroup" bug in tests (found by revdep check for dplyr 1.0.0)
+
 # 1.0.0
 
 - tidyr: support for pivot_longer, pivot_wider

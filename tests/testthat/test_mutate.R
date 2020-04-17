@@ -36,6 +36,21 @@ test_that("mutate", {
     # double to character
     f <- function() tidylog::mutate(iris, Sepal.Length = as.character(Sepal.Length))
     expect_message(f(), "from double to character.*0 new NA")
+
+    # character to ordered factor
+    iris2 <- dplyr::mutate(iris, Species = as.character(Species))
+    f <- function() tidylog::mutate(iris2, Species = ordered(Species))
+    expect_message(f(), "from character to ordered factor.*0 new NA")
+
+    # ordered factor to character
+    iris2 <- dplyr::mutate(iris, Species = ordered(Species))
+    f <- function() tidylog::mutate(iris2, Species = as.character(Species))
+    expect_message(f(), "from ordered factor to character.*0 new NA")
+
+    # character to Date
+    iris2 <- dplyr::mutate(iris, date = "2016-01-01")
+    f <- function() tidylog::mutate(iris2, date = as.Date(date))
+    expect_message(f(), "from character to Date.*0 new NA")
 })
 
 test_that("missings", {
@@ -221,4 +236,22 @@ test_that("mutate: list columns", {
     expect_message({
         out <- tidylog::mutate(df, x = as.list(x))
     }, "converted.*from integer to list")
+})
+
+test_that("mutate: ordered factors", {
+    df <- tibble(x = ordered(c("apple", "bear", "banana", "dear")))
+    rec <- forcats::fct_recode(df$x, fruit = "apple", fruit = "banana")
+    # new variable
+    expect_message({
+        new <- tidylog::mutate(df,
+                    y = forcats::fct_recode(x, fruit = "apple", fruit = "banana"))
+    }, "new variable 'y' with 3 unique values")
+    expect_true(all(new$y == rec))
+
+    # overwriting
+    expect_message({
+        new <- tidylog::mutate(df,
+                    x = forcats::fct_recode(x, fruit = "apple", fruit = "banana"))
+    }, "changed 2 values")
+    expect_true(all(new$x == rec))
 })
