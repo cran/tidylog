@@ -1,4 +1,10 @@
-# 1.0.0.9000
+# 1.0.1.9000
+
+- add a short benchmarking vignette
+- report type for new variables (#45)
+- add relocate, rename_with, slice_* from dplyr 1.0.0
+
+# 1.0.1
 
 - autogenerate documentation
 - data argument now has same name as in tidyr/dplyr (#43)
