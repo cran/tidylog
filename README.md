@@ -6,10 +6,9 @@
 [![CRAN
 Version](https://www.r-pkg.org/badges/version/tidylog)](https://CRAN.R-project.org/package=tidylog)
 [![Downloads](http://cranlogs.r-pkg.org/badges/tidylog)](https://CRAN.R-project.org/package=tidylog)
-[![Build
-Status](https://travis-ci.org/elbersb/tidylog.svg?branch=master)](https://travis-ci.org/elbersb/tidylog)
+[![R-CMD-check](https://github.com/elbersb/tidylog/workflows/R-CMD-check/badge.svg)](https://github.com/elbersb/tidylog/actions)
 [![Coverage
-status](https://codecov.io/gh/elbersb/tidylog/branch/master/graph/badge.svg)](https://codecov.io/github/elbersb/tidylog?branch=master)
+status](https://codecov.io/gh/elbersb/tidylog/branch/master/graph/badge.svg)](https://app.codecov.io/github/elbersb/tidylog?branch=master)
 
 The goal of tidylog is to provide feedback about dplyr and tidyr
 operations. It provides simple wrapper functions for almost all dplyr
@@ -42,11 +41,11 @@ Tidylog reports detailed information for joins:
 joined <- left_join(nycflights13::flights, nycflights13::weather,
     by = c("year", "month", "day", "origin", "hour", "time_hour"))
 #> left_join: added 9 columns (temp, dewp, humid, wind_dir, wind_speed, …)
-#>            > rows only in x     1,556
-#>            > rows only in y  (  6,737)
-#>            > matched rows     335,220
-#>            >                 =========
-#>            > rows total       336,776
+#>            > rows only in nycflights13::flights    1,556
+#>            > rows only in nycflights13::weather (  6,737)
+#>            > matched rows                        335,220
+#>            >                                    =========
+#>            > rows total                          336,776
 ```
 
 In this case, we see that 1,556 rows from the `flights` dataset do not
@@ -87,9 +86,18 @@ Or install the development version:
 devtools::install_github("elbersb/tidylog")
 ```
 
+## Benchmarks
+
+Tidylog will add a small overhead to each function call. This can be
+relevant for very large datasets and especially for joins. If you want
+to switch off tidylog for a single long-running command, simply prefix
+`dplyr::` or `tidyr::`, such as in `dplyr::left_join`. See [this
+vignette](https://cran.r-project.org/package=tidylog/vignettes/benchmarks.html)
+for more information.
+
 ## More examples
 
-### filter, distinct, drop\_na
+### filter, distinct, drop_na
 
 ``` r
 a <- filter(mtcars, mpg > 20)
@@ -115,7 +123,7 @@ k <- drop_na(airquality, Ozone)
 #> drop_na: removed 37 rows (24%), 116 rows remaining
 ```
 
-### mutate, transmute, replace\_na, fill
+### mutate, transmute, replace_na, fill
 
 ``` r
 a <- mutate(mtcars, new_var = 1)
@@ -125,27 +133,28 @@ b <- mutate(mtcars, new_var = runif(n()))
 c <- mutate(mtcars, new_var = NA)
 #> mutate: new variable 'new_var' (logical) with one unique value and 100% NA
 d <- mutate_at(mtcars, vars(mpg, gear, drat), round)
-#> mutate_at: changed 28 values (88%) of 'mpg' (0 new NA)
-#>            changed 31 values (97%) of 'drat' (0 new NA)
+#> mutate_at: changed 28 values (88%) of 'mpg' (0 new NAs)
+#>            changed 31 values (97%) of 'drat' (0 new NAs)
 e <- mutate(mtcars, am_factor = as.factor(am))
 #> mutate: new variable 'am_factor' (factor) with 2 unique values and 0% NA
 f <- mutate(mtcars, am = as.ordered(am))
 #> mutate: converted 'am' from double to ordered factor (0 new NA)
 g <- mutate(mtcars, am = ifelse(am == 1, NA, am))
-#> mutate: changed 13 values (41%) of 'am' (13 new NA)
+#> mutate: changed 13 values (41%) of 'am' (13 new NAs)
 h <- mutate(mtcars, am = recode(am, `0` = "zero", `1` = NA_character_))
 #> mutate: converted 'am' from double to character (13 new NA)
 
 i <- transmute(mtcars, mpg = mpg * 2, gear = gear + 1, new_var = vs + am)
 #> transmute: dropped 9 variables (cyl, disp, hp, drat, wt, …)
-#>            changed 32 values (100%) of 'mpg' (0 new NA)
-#>            changed 32 values (100%) of 'gear' (0 new NA)
+#> transmute: dropped 9 variables (cyl, disp, hp, drat, wt, …)
+#>            changed 32 values (100%) of 'mpg' (0 new NAs)
+#>            changed 32 values (100%) of 'gear' (0 new NAs)
 #>            new variable 'new_var' (double) with 3 unique values and 0% NA
 
 j <- replace_na(airquality, list(Solar.R = 1))
-#> replace_na: converted 'Solar.R' from integer to double (7 fewer NA)
+#> replace_na: changed 7 values (5%) of 'Solar.R' (7 fewer NAs)
 k <- fill(airquality, Ozone)
-#> fill: changed 37 values (24%) of 'Ozone' (37 fewer NA)
+#> fill: changed 37 values (24%) of 'Ozone' (37 fewer NAs)
 ```
 
 ### joins
@@ -162,11 +171,11 @@ x <- tibble(a = 1:2)
 y <- tibble(a = c(1, 1, 2), b = 1:3) # 1 is duplicated
 j <- left_join(x, y, by = "a")
 #> left_join: added one column (b)
-#>            > rows only in x   0
-#>            > rows only in y  (0)
-#>            > matched rows     3    (includes duplicates)
-#>            >                 ===
-#>            > rows total       3
+#>            > rows only in x  0
+#>            > rows only in y (0)
+#>            > matched rows    3    (includes duplicates)
+#>            >                ===
+#>            > rows total      3
 ```
 
 More examples:
@@ -174,25 +183,25 @@ More examples:
 ``` r
 a <- left_join(band_members, band_instruments, by = "name")
 #> left_join: added one column (plays)
-#>            > rows only in x   1
-#>            > rows only in y  (1)
-#>            > matched rows     2
-#>            >                 ===
-#>            > rows total       3
+#>            > rows only in band_members      1
+#>            > rows only in band_instruments (1)
+#>            > matched rows                   2
+#>            >                               ===
+#>            > rows total                     3
 b <- full_join(band_members, band_instruments, by = "name")
 #> full_join: added one column (plays)
-#>            > rows only in x   1
-#>            > rows only in y   1
-#>            > matched rows     2
-#>            >                 ===
-#>            > rows total       4
+#>            > rows only in band_members      1
+#>            > rows only in band_instruments  1
+#>            > matched rows                   2
+#>            >                               ===
+#>            > rows total                     4
 c <- anti_join(band_members, band_instruments, by = "name")
 #> anti_join: added no columns
-#>            > rows only in x   1
-#>            > rows only in y  (1)
-#>            > matched rows    (2)
-#>            >                 ===
-#>            > rows total       1
+#>            > rows only in band_members      1
+#>            > rows only in band_instruments (1)
+#>            > matched rows                  (2)
+#>            >                               ===
+#>            > rows total                     1
 ```
 
 Because tidylog needs to perform two additional joins behind the scenes
@@ -233,7 +242,7 @@ b <- iris %>%
 #> summarize_all: now 3 rows and 9 columns, ungrouped
 ```
 
-### tally, count, add\_tally, add\_count
+### tally, count, add_tally, add_count
 
 ``` r
 a <- mtcars %>% group_by(gear, carb) %>% tally
@@ -244,12 +253,12 @@ b <- mtcars %>% group_by(gear, carb) %>% add_tally()
 #> add_tally (grouped): new variable 'n' (integer) with 5 unique values and 0% NA
 
 c <- mtcars %>% count(gear, carb)
-#> count: now 11 rows and 3 columns, one group variable remaining (gear)
+#> count: now 11 rows and 3 columns, ungrouped
 d <- mtcars %>% add_count(gear, carb, name = "count")
 #> add_count: new variable 'count' (integer) with 5 unique values and 0% NA
 ```
 
-### pivot\_longer, pivot\_wider
+### pivot_longer, pivot_wider
 
 ``` r
 longer <- mtcars %>%
@@ -259,7 +268,8 @@ longer <- mtcars %>%
 #> pivot_longer: reorganized (mpg, cyl, disp, hp, drat, …) into (var, value) [was 32x12, now 352x3]
 wider <- longer %>%
     pivot_wider(names_from = var, values_from = value)
-#> pivot_wider: reorganized (var, value) into (mpg, cyl, disp, hp, drat, …) [was 352x3, now 32x12]
+#> pivot_wider: reorganized (var, value) into (mpg, cyl, disp, hp, drat, …) [was
+#> 352x3, now 32x12]
 ```
 
 Tidylog also supports `gather` and `spread`.

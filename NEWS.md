@@ -1,4 +1,16 @@
-# 1.0.1.9000
+# 1.1.0
+
+- switch to Github Actions for CI
+- units package now supported (#51)
+- mutate: fix formatting issues for NAs (#48)
+- use rlang::inform instead of message (#41)
+- include dataset names in join messages (#46)
+- mutate now reports dropped columns (#53)
+- filter reports the number of groups (#52)
+- fix bug with new dplyr::join_by syntax (#58)
+- tidyr: support for separate_wider_* functions (#62)
+
+# 1.0.2
 
 - add a short benchmarking vignette
 - report type for new variables (#45)

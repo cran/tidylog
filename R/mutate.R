@@ -86,6 +86,15 @@ log_mutate <- function(.data, .fun, .funname, ...) {
     }
 
     has_changed <- FALSE
+
+    dropped_vars <- setdiff(cols, names(newdata))
+    if (length(dropped_vars) > 0) {
+        # dropped only
+        display(glue::glue("{.funname}: dropped {plural(length(dropped_vars), 'variable')}",
+                           " ({format_list(dropped_vars)})"))
+        has_changed = TRUE
+    }
+
     for (var in names(newdata)) {
         # new var
         if (!var %in% cols) {
@@ -130,8 +139,7 @@ log_mutate <- function(.data, .fun, .funname, ...) {
                 n <- sum(different)
                 p <- percent(n, length(different))
                 new_na <- sum(is.na(new)) - sum(is.na(old))
-                na_text <- glue::glue("{abs(new_na)} ",
-                                      ifelse(new_na >= 0, "new", "fewer"), " NA")
+                na_text <- plural(abs(new_na), "NA", mid = ifelse(new_na >= 0, "new ", "fewer "))
                 display(glue::glue("{prefix} changed {plural(n, 'value')} ",
                     "({p}) of '{var}' ({na_text})"))
                 # replace by spaces

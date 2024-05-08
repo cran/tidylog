@@ -2,7 +2,15 @@ plural <- function(n_items, noun, mid = "") {
     if (n_items == 1) {
         paste0("one ", mid, noun)
     } else {
-        paste0(formatC(n_items, big.mark = ","), " ", mid, noun, "s")
+        paste0(format(n_items, big.mark = ",", scientific = FALSE), " ", mid, noun, "s")
+    }
+}
+
+shorten <- function(str) {
+    if (nchar(str) > 25) {
+        paste0(substr(str, 1, 23), "..")
+    } else {
+        str
     }
 }
 
@@ -37,6 +45,8 @@ get_type <- function(v) {
         "factor"
     } else if (inherits(v, "Date")) {
         "Date"
+    } else if (inherits(v, "units")) {
+        "units"
     } else {
         typeof(v)
     }
@@ -53,10 +63,11 @@ get_groups <- function(.data) {
     }
 }
 
+#' @import rlang
 display <- function(text) {
     functions <- getOption("tidylog.display")
     if (is.null(functions)) {
-        message(text)
+        rlang::inform(text)
     } else if (is.list(functions)) {
         for (f in functions) {
             if (is.function(f)) {
